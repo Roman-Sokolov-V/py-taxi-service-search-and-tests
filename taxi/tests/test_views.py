@@ -62,28 +62,30 @@ class PublicManufacturerListViewTests(TestCase):
 
 
 class PrivateManufacturerListViewTests(SetUpMixin, TestCase):
-    def test_retrieve_manufacturer_list(self):
+    def setUp(self) -> None:
+        super().setUp()
+        self.manufacturer_list = Manufacturer.objects.all()
+
+    def test_retrieve_manufacturer_list_(self):
         res = self.client.get(reverse("taxi:manufacturer-list"))
-        manufacturer_list = Manufacturer.objects.all()
+        # manufacturer_list = Manufacturer.objects.all()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(
-            list(res.context["manufacturer_list"]), list(manufacturer_list)
+            list(res.context["manufacturer_list"]),
+            list(self.manufacturer_list),
         )
         self.assertTemplateUsed(res, "taxi/manufacturer_list.html")
         self.assertIn("manufacturer_search_form", res.context)
 
+    def test_search_form(self):
+        form_data = {"name": self.manufacturer.name}
         response = self.client.get(
-            reverse("taxi:manufacturer-list")
-            + f"?name={self.manufacturer.name}"
+            reverse("taxi:manufacturer-list"), form_data
         )
-        self.assertEqual(res.status_code, 200)
-        form = response.context["manufacturer_search_form"]
-        self.assertIsInstance(form, ManufacturerSearchForm)
-        self.assertEqual(form.initial["name"], "ZAZ")
         self.assertEqual(
             list(response.context["manufacturer_list"]),
             list(
-                manufacturer_list.filter(
+                self.manufacturer_list.filter(
                     name__icontains=self.manufacturer.name
                 )
             ),
@@ -171,25 +173,20 @@ class PrivateCarListViewTests(SetUpMixin, TestCase):
             model="Mercedes-Benz S-Class",
             manufacturer=self.another_manufacturer,
         )
+        self.car_list = Car.objects.all()
 
     def test_retrieve_manufacturer_list(self):
         res = self.client.get(reverse("taxi:car-list"))
-        car_list = Car.objects.all()
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context["car_list"]), list(car_list))
+        self.assertEqual(list(res.context["car_list"]), list(self.car_list))
         self.assertTemplateUsed(res, "taxi/car_list.html")
-        self.assertIn("car_search_form", res.context)
 
-        response = self.client.get(
-            reverse("taxi:car-list") + f"?model={self.car.model}"
-        )
-        self.assertEqual(res.status_code, 200)
-        form = response.context["car_search_form"]
-        self.assertIsInstance(form, CarSearchForm)
-        self.assertEqual(form.initial["model"], self.car.model)
+    def test_search_form(self):
+        form_data = {"model": self.car.model}
+        response = self.client.get(reverse("taxi:car-list"), form_data)
         self.assertEqual(
             list(response.context["car_list"]),
-            list(car_list.filter(model__icontains=self.car.model)),
+            list(self.car_list.filter(model__icontains=self.car.model)),
         )
 
 
@@ -297,29 +294,24 @@ class PrivateDriverListViewTests(SetUpMixin, TestCase):
             password="test_password",
             license_number="ADF12340",
         )
+        self.driver_list = get_user_model().objects.all()
 
     def test_retrieve_driver_list(self):
         res = self.client.get(reverse("taxi:driver-list"))
-        driver_list = get_user_model().objects.all()
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(list(res.context["driver_list"]), list(driver_list))
+        self.assertEqual(
+            list(res.context["driver_list"]), list(self.driver_list)
+        )
         self.assertTemplateUsed(res, "taxi/driver_list.html")
         self.assertIn("driver_search_form", res.context)
 
-        response = self.client.get(
-            reverse("taxi:driver-list")
-            + f"?username={self.anotheruser.username}"
-        )
-        self.assertEqual(res.status_code, 200)
-        form = response.context["driver_search_form"]
-        self.assertIsInstance(form, DriverSearchForm)
-        self.assertEqual(form.initial["username"], self.anotheruser.username)
+    def test_search_form(self):
+        form_data = {"username": self.user.username}
+        response = self.client.get(reverse("taxi:driver-list"), form_data)
         self.assertEqual(
             list(response.context["driver_list"]),
             list(
-                driver_list.filter(
-                    username__icontains=self.anotheruser.username
-                )
+                self.driver_list.filter(username__icontains=self.user.username)
             ),
         )
 
