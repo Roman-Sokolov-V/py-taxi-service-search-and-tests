@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -8,9 +8,7 @@ from taxi.models import Car, Manufacturer
 class DriverAdminTests(TestCase):
     def setUp(self) -> None:
         self.admin_user = get_user_model().objects.create_superuser(
-            username="admin",
-            password="admin123",
-            license_number="ADF12345"
+            username="admin", password="admin123", license_number="ADF12345"
         )
         self.client.force_login(self.admin_user)
 
@@ -42,7 +40,7 @@ class DriverAdminTests(TestCase):
             "password2": "pass_user123",
             "license_number": "GHJ67890",
             "first_name": "New",
-            "last_name": "Driver"
+            "last_name": "Driver",
         }
         res = self.client.post(url, data)
         self.assertEqual(res.status_code, 302)
@@ -51,18 +49,24 @@ class DriverAdminTests(TestCase):
         self.assertEqual(driver.first_name, "New")
         self.assertEqual(driver.last_name, "Driver")
 
+
 class CarAdminTests(TestCase):
     def setUp(self) -> None:
         self.admin_user = get_user_model().objects.create_superuser(
-            username="admin",
-            password="admin123",
-            license_number="ADF12345"
+            username="admin", password="admin123", license_number="ADF12345"
         )
         self.client.force_login(self.admin_user)
         manufact = Manufacturer.objects.create(name="ZAZ", country="Ukraine")
-        another_manufact = Manufacturer.objects.create(name="Mercedes-Benz", country="Germany")
-        self.car = Car.objects.create(model="ZAZ-1000", manufacturer=manufact,)
-        self.another_car = Car.objects.create(model="Focus", manufacturer=another_manufact)
+        another_manufact = Manufacturer.objects.create(
+            name="Mercedes-Benz", country="Germany"
+        )
+        self.car = Car.objects.create(
+            model="ZAZ-1000",
+            manufacturer=manufact,
+        )
+        self.another_car = Car.objects.create(
+            model="Focus", manufacturer=another_manufact
+        )
 
     def test_search_fields_contains_all_fields_and_all_models(self) -> None:
         url = reverse("admin:taxi_car_changelist")
@@ -72,7 +76,6 @@ class CarAdminTests(TestCase):
         self.assertContains(res, self.car.model)
         self.assertContains(res, self.another_car.model)
 
-
     def test_search_fields_finds_model_needed_only(self) -> None:
         url = reverse("admin:taxi_car_changelist") + "?q=1000"
         res = self.client.get(url)
@@ -80,7 +83,9 @@ class CarAdminTests(TestCase):
         self.assertContains(res, self.car.model)
         self.assertNotContains(res, self.another_car.model)
 
-    def test_list_filter_contains_all_fields_and_all_manufacturers(self) -> None:
+    def test_list_filter_contains_all_fields_and_all_manufacturers(
+        self,
+    ) -> None:
         url = reverse("admin:taxi_car_changelist")
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
@@ -89,9 +94,10 @@ class CarAdminTests(TestCase):
         self.assertContains(res, self.another_car.manufacturer.name)
 
     def test_list_filter_correctly_filters(self) -> None:
-        url = reverse(
-            "admin:taxi_car_changelist"
-        ) + f"?manufacturer__id__exact={self.car.manufacturer.id}"
+        url = (
+            reverse("admin:taxi_car_changelist")
+            + f"?manufacturer__id__exact={self.car.manufacturer.id}"
+        )
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, self.car.model)

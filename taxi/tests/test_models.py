@@ -7,11 +7,9 @@ from taxi.models import Manufacturer, Car
 
 class ManufacturerTests(TestCase):
     def test_manufact_str(self) -> None:
-        manufact = Manufacturer.objects.create(
-            name="Tesla",
-            country="USA"
-        )
+        manufact = Manufacturer.objects.create(name="Tesla", country="USA")
         self.assertEqual(str(manufact), "Tesla USA")
+
 
 class DriverTests(TestCase):
     def setUp(self) -> None:
@@ -20,8 +18,9 @@ class DriverTests(TestCase):
             password="secret",
             first_name="John",
             last_name="Doe",
-            license_number="ADF12345"
+            license_number="ADF12345",
         )
+
     def test_license_number(self) -> None:
         self.assertEqual(self.driver.license_number, "ADF12345")
 
@@ -38,16 +37,13 @@ class DriverTests(TestCase):
                 username="jane",
                 password="secret",
                 first_name="Jane",
-                last_name="Doe"
+                last_name="Doe",
             )
             driver.full_clean()
 
 
 class CarTests(TestCase):
     def test_car_str(self):
-        manufact = Manufacturer.objects.create(
-            name="ZAZ",
-            country="Ukrain"
-        )
+        manufact = Manufacturer.objects.create(name="ZAZ", country="Ukrain")
         car = Car.objects.create(model="ZAZ-1000", manufacturer=manufact)
         self.assertEqual(str(car), "ZAZ-1000")
